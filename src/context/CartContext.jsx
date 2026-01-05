@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const CartContext = createContext();
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
+    throw new Error("useCart must be used within CartProvider");
   }
   return context;
 };
@@ -13,93 +13,129 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-  const [showNotification, setShowNotification] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [authToken, setAuthToken] = useState(localStorage.getItem("token"));
 
-  // 🔹 Load cart from localStorage
+  // Listen for storage changes (like logout/login)
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCartItems(parsedCart);
-      setCartCount(
-        parsedCart.reduce((sum, item) => sum + item.quantity, 0)
-      );
+    const handleStorageChange = () => {
+      const newToken = localStorage.getItem("token");
+      if (newToken !== authToken) {
+        setAuthToken(newToken);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [authToken]);
+
+  // Get current user from localStorage (if any)
+  const getCurrentUser = () => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
     }
-  }, []);
+  };
 
-  // 🔹 Save cart to localStorage on update
+  // Generate unique cart key based on user or guest
+  const getCartKey = () => {
+    const user = getCurrentUser();
+    const token = localStorage.getItem("token");
+    
+    if (token && user) {
+      return `cart_${user.email || user.id}`; // User-specific cart
+    }
+    return "cart_guest"; // Guest cart
+  };
+
+  // 🔹 Load cart from localStorage based on user - THIS IS THE KEY FIX
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-    const totalCount = cartItems.reduce(
-      (sum, item) => sum + item.quantity,
+    const cartKey = getCartKey();
+    const savedCart = localStorage.getItem(cartKey);
+    
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(parsedCart);
+      } catch (error) {
+        console.error("Error parsing cart from localStorage:", error);
+        localStorage.removeItem(cartKey);
+      }
+    } else {
+      setCartItems([]);
+    }
+  }, [authToken]); // Reload cart when auth token changes
+
+  // 🔹 Update cartCount and save to localStorage
+  useEffect(() => {
+    const totalQty = cartItems.reduce(
+      (sum, item) => sum + (item.quantity || 0),
       0
     );
-    setCartCount(totalCount);
-  }, [cartItems]);
+    setCartCount(totalQty);
+    
+    // Save to localStorage with appropriate key
+    const cartKey = getCartKey();
+    localStorage.setItem(cartKey, JSON.stringify(cartItems));
+  }, [cartItems, authToken]); // Also depend on authToken
 
   // 🔹 Add to cart
   const addToCart = (product) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (item) => item.id === product.id
-      );
-
-      if (existingItem) {
-        return prevItems.map((item) =>
+    setCartItems((prev) => {
+      const exists = prev.find((i) => i.id === product.id);
+      if (exists) {
+        return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: (item.quantity || 0) + 1 }
             : item
         );
       } else {
-        return [...prevItems, { ...product, quantity: 1 }];
+        return [...prev, { ...product, quantity: 1 }];
       }
     });
-
-    setNotificationCount((prev) => prev + 1);
-    setShowNotification(true);
-
-    setTimeout(() => {
-      setShowNotification(false);
-    }, 3000);
   };
 
   // 🔹 Remove item
-  const removeFromCart = (productId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== productId)
+  const removeFromCart = (id) => {
+    setCartItems((prev) =>
+      prev.filter((item) => item.id !== id)
     );
   };
 
   // 🔹 Update quantity
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      removeFromCart(productId);
+  const updateQuantity = (id, qty) => {
+    if (qty < 1) {
+      removeFromCart(id);
       return;
     }
 
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId
-          ? { ...item, quantity: newQuantity }
-          : item
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: qty } : item
       )
     );
   };
 
-  // 🔹 CLEAR CART (USE ON LOGOUT)
+  // 🔥 CLEAR CART
   const clearCart = () => {
     setCartItems([]);
-    setCartCount(0);
-    setNotificationCount(0);
-    setShowNotification(false);
-    localStorage.removeItem("cart");
+    const cartKey = getCartKey();
+    localStorage.removeItem(cartKey);
+  };
+
+  // 🔹 Clear cart for specific user (called on logout)
+  const clearUserCart = (userEmailOrId) => {
+    if (userEmailOrId) {
+      localStorage.removeItem(`cart_${userEmailOrId}`);
+    }
+    setCartItems([]); // Clear current cart state
   };
 
   // 🔹 Total price
   const getTotalPrice = () => {
     return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + (item.price || 0) * (item.quantity || 0),
       0
     );
   };
@@ -112,10 +148,9 @@ export const CartProvider = ({ children }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
-        clearCart, // 👈 call this on logout
+        clearCart,
+        clearUserCart,
         getTotalPrice,
-        showNotification,
-        notificationCount,
       }}
     >
       {children}
