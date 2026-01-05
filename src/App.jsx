@@ -24,7 +24,7 @@ import TrendingProduct from "./components/pages/TrendingProduct";
 import BestSelling from "./components/pages/BestSelling";
 import TopRated from "./components/pages/TopRated";
 import Cart from "./components/pages/Cart";
-import Checkout from "./components/pages/Checkout";
+import Checkout from "./components/pages/CheckOut";
 
 // Admin Pages
 import AdminDashboard from "./components/Admin/AdminDashboard";
