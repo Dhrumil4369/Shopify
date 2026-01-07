@@ -1,274 +1,82 @@
-// import React from "react";
-// import Img1 from "../../assets/women/women.png";
-// import Img2 from "../../assets/women/women2.jpg";
-// import Img3 from "../../assets/women/women3.jpg";
-// import Img4 from "../../assets/women/women4.jpg";
-// import { FaStar } from "react-icons/fa6";
-// import { useCart } from "../../context/CartContext";
 
-// const ProductsData = [
-//   {
-//     id: 1,
-//     img: Img1,
-//     title: "Women Ethnic",
-//     rating: 5.0,
-//     color: "White",
-//     price: 1299,
-//     aosDelay: "0",
-//   },
-//   {
-//     id: 2,
-//     img: Img2,
-//     title: "Women Western",
-//     rating: 4.5,
-//     color: "Red",
-//     price: 1599,
-//     aosDelay: "200",
-//   },
-//   {
-//     id: 3,
-//     img: Img3,
-//     title: "Goggles",
-//     rating: 4.7,
-//     color: "Brown",
-//     price: 799,
-//     aosDelay: "400",
-//   },
-//   {
-//     id: 4,
-//     img: Img4,
-//     title: "Printed T-Shirt",
-//     rating: 4.4,
-//     color: "Yellow",
-//     price: 999,
-//     aosDelay: "600",
-//   },
-//   {
-//     id: 5,
-//     img: Img2,
-//     title: "Fashion T-Shirt",
-//     rating: 4.5,
-//     color: "Pink",
-//     price: 1199,
-//     aosDelay: "800",
-//   },
-// ];
-
-// const Products = () => {
-//   const { addToCart } = useCart();
-
-//   const handleAddToCart = (product) => {
-//     addToCart(product);
-//   };
-
-//   return (
-//     <div className="mt-14 mb-12">
-//       <div className="container">
-
-//         {/* Header section */}
-//         <div className="text-center mb-10 max-w-[600px] mx-auto">
-//           <p data-aos="fade-up" className="text-sm text-primary">
-//             Top Selling Products for you
-//           </p>
-
-//           <h1 data-aos="fade-up" className="text-3xl font-bold">
-//             Products
-//           </h1>
-
-//           <p data-aos="fade-up" className="text-sm text-gray-500 mt-2">
-//             Discover our curated collection of premium products
-//           </p>
-//         </div>
-        
-//         {/* Body section */}
-//         <div>
-//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 place-items-center">
-
-//             {/* card section */}
-//             {ProductsData.map((data) => (
-//               <div data-aos="fade-up" data-aos-delay={data.aosDelay} key={data.id} className="space-y-4 bg-white dark:bg-gray-800 
-//                 p-4 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-//                 <div className="relative">
-//                   <img src={data.img} alt={data.title} className="h-[220px] w-full object-cover rounded-md"/>
-
-//                   <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-//                     New
-//                   </div>
-//                 </div>
-
-//                 <div className="space-y-2">
-//                   <h3 className="font-semibold text-lg dark:text-white">{data.title}</h3>
-//                   <p className="text-sm text-gray-600 dark:text-gray-400">Color: {data.color}</p>
-//                   <p className="text-green-600 font-bold dark:text-green-400">₹{data.price}</p>
-//                   <div className="flex items-center gap-1">
-//                     <FaStar className="text-yellow-400" />
-//                     <span className="font-medium dark:text-white">{data.rating}</span>
-//                     <span className="text-gray-500 text-sm ml-2">(120 reviews)</span>
-//                   </div>
-
-//                   <button onClick={() => handleAddToCart(data)} className="w-full bg-gradient-to-r from-primary to-secondary 
-//                     text-white py-2 rounded-md hover:scale-105 duration-300">
-//                     Add to Cart
-//                   </button>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-          
-//           {/* view all button */}
-//           <div className="flex justify-center mt-12">
-//             <button className="bg-gradient-to-r from-primary to-secondary text-white py-3 px-8 rounded-full hover:scale-105 
-//               transition-transform duration-300 font-medium">
-//               View All Products
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Products;
 
 import React from "react";
-import Img1 from "../../assets/women/women.png";
-import Img2 from "../../assets/women/women2.jpg";
-import Img3 from "../../assets/women/women3.jpg";
-import Img4 from "../../assets/women/women4.jpg";
-import { FaStar } from "react-icons/fa6";
+import { FaStar } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 
 const ProductsData = [
-  {
-    id: 1,
-    img: Img1,
-    title: "Women Ethnic",
-    rating: 5.0,
-    color: "White",
-    price: 1299,
-    aosDelay: "0",
-  },
-  {
-    id: 2,
-    img: Img2,
-    title: "Women Western",
-    rating: 4.5,
-    color: "Red",
-    price: 1599,
-    aosDelay: "200",
-  },
-  {
-    id: 3,
-    img: Img3,
-    title: "Goggles",
-    rating: 4.7,
-    color: "Brown",
-    price: 799,
-    aosDelay: "400",
-  },
-  {
-    id: 4,
-    img: Img4,
-    title: "Printed T-Shirt",
-    rating: 4.4,
-    color: "Yellow",
-    price: 999,
-    aosDelay: "600",
-  },
-  {
-    id: 5,
-    img: Img2,
-    title: "Fashion T-Shirt",
-    rating: 4.5,
-    color: "Pink",
-    price: 1199,
-    aosDelay: "800",
-  },
+  { id: 1, img: "https://picsum.photos/seed/w1/400/500", title: "Women Ethnic Wear", rating: 5.0, price: 1299, oldPrice: 1999 },
+  { id: 2, img: "https://picsum.photos/seed/w2/400/500", title: "Red Western Dress", rating: 4.5, price: 1599, oldPrice: 2499 },
+  { id: 3, img: "https://picsum.photos/seed/w3/400/500", title: "Stylish Goggles", rating: 4.7, price: 799, oldPrice: 1299 },
+  { id: 4, img: "https://picsum.photos/seed/w4/400/500", title: "Printed T-Shirt", rating: 4.4, price: 999, oldPrice: 1499 },
+  { id: 5, img: "https://picsum.photos/seed/w5/400/500", title: "Fashion Pink Top", rating: 4.6, price: 1199, oldPrice: 1899 },
+  { id: 6, img: "https://picsum.photos/seed/w6/400/500", title: "Casual Denim Jacket", rating: 4.8, price: 2199, oldPrice: 3499 },
 ];
 
-const Products = () => {
+const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
-
-  const handleAddToCart = (product) => {
-    addToCart(product);
-  };
+  const discount = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
 
   return (
-    <div className="mt-14 mb-12">
-      <div className="container">
-
-        {/* Header section */}
-        <div className="text-center mb-10 max-w-[600px] mx-auto">
-          <p data-aos="fade-up" className="text-sm text-primary">
-            Top Selling Products for you
-          </p>
-
-          <h1 data-aos="fade-up" className="text-3xl font-bold">
-            Products
-          </h1>
-
-          <p data-aos="fade-up" className="text-sm text-gray-500 mt-2">
-            Discover our curated collection of premium products
-          </p>
-        </div>
-        
-        {/* Body section */}
-        <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8 justify-items-center">
-
-            {/* card section */}
-            {ProductsData.map((data) => (
-              <div 
-                data-aos="fade-up" 
-                data-aos-delay={data.aosDelay} 
-                key={data.id} 
-                className="w-full max-w-[300px] bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col"
-              >
-                {/* Fixed height image container with object-cover and center */}
-                <div className="relative h-[220px] w-full overflow-hidden rounded-t-xl">
-                  <img 
-                    src={data.img} 
-                    alt={data.title} 
-                    className="w-full h-full object-cover object-center"
-                  />
-                  <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                    New
-                  </div>
-                </div>
-
-                {/* Content section - takes remaining space */}
-                <div className="flex flex-col flex-1 p-4 justify-between">
-                  <div className="space-y-2 text-center">
-                    <h3 className="font-semibold text-lg dark:text-white line-clamp-1">{data.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Color: {data.color}</p>
-                    <p className="text-green-600 font-bold dark:text-green-400">₹{data.price}</p>
-                    <div className="flex items-center justify-center gap-1">
-                      <FaStar className="text-yellow-400" />
-                      <span className="font-medium dark:text-white">{data.rating}</span>
-                      <span className="text-gray-500 text-sm ml-2">(120 reviews)</span>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => handleAddToCart(data)} 
-                    className="mt-4 w-full bg-gradient-to-r from-primary to-secondary text-white py-2 rounded-md hover:scale-105 duration-300"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
+    <div className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+      <div className="relative">
+        <img src={product.img} alt={product.title} className="w-full h-80 object-cover" />
+        {discount > 0 && (
+          <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+            -{discount}%
+          </span>
+        )}
+        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+      </div>
+      <div className="p-5">
+        <h3 className="font-semibold text-lg text-gray-800 dark:text-white line-clamp-2 mb-2">
+          {product.title}
+        </h3>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex text-yellow-400">
+            {[...Array(5)].map((_, i) => (
+              <FaStar key={i} className={i < Math.floor(product.rating) ? "fill-current" : "text-gray-300"} />
             ))}
           </div>
-          
-          {/* view all button */}
-          <div className="flex justify-center mt-12">
-            <button className="bg-gradient-to-r from-primary to-secondary text-white py-3 px-8 rounded-full hover:scale-105 transition-transform duration-300 font-medium">
-              View All Products
-            </button>
+          <span className="text-sm text-gray-600 dark:text-gray-400">({product.rating})</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">₹{product.price}</p>
+            {product.oldPrice && (
+              <p className="text-sm text-gray-500 line-through">₹{product.oldPrice}</p>
+            )}
           </div>
+          <button
+            onClick={() => addToCart(product)}
+            className="bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-full hover:scale-105 transition-transform duration-300 font-medium"
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
+  );
+};
+
+const Products = () => {
+  return (
+    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <p className="text-primary font-semibold text-lg">Top Selling</p>
+          <h2 className="text-4xl font-bold text-gray-800 dark:text-white mt-2">Our Best Products</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-3 max-w-2xl mx-auto">
+            Explore our handpicked collection of premium quality products loved by thousands.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {ProductsData.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 

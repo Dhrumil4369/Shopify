@@ -161,11 +161,8 @@ const AdminSettings = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">Timezone</label>
-                <select name="timezone"
-                  value={settings.timezone}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-                >
+                <select name="timezone" value={settings.timezone} onChange={handleInputChange} className="w-full p-3 border border-gray-300 
+                dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent">
                   <option value="America/Los_Angeles">Pacific Time (PT)</option>
                   <option value="America/New_York">Eastern Time (ET)</option>
                   <option value="Europe/London">London (GMT)</option>
@@ -255,13 +252,8 @@ const AdminSettings = () => {
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name={`notifications.${notification.id}`}
-                        checked={settings.notifications[notification.id]}
-                        onChange={handleInputChange}
-                        className="sr-only peer"
-                      />
+                      <input type="checkbox" name={`notifications.${notification.id}`} checked={settings.notifications[notification.id]}
+                        onChange={handleInputChange} className="sr-only peer"/>
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
@@ -297,13 +289,8 @@ const AdminSettings = () => {
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="security.twoFactorAuth"
-                      checked={settings.security.twoFactorAuth}
-                      onChange={handleInputChange}
-                      className="sr-only peer"
-                    />
+                    <input type="checkbox" name="security.twoFactorAuth" checked={settings.security.twoFactorAuth}
+                    onChange={handleInputChange} className="sr-only peer"/>
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
@@ -312,16 +299,9 @@ const AdminSettings = () => {
                   <label className="block text-sm font-medium mb-2">
                     Session Timeout (minutes)
                   </label>
-                  <input
-                    type="range"
-                    name="security.sessionTimeout"
-                    min="5"
-                    max="120"
-                    step="5"
-                    value={settings.security.sessionTimeout}
-                    onChange={handleInputChange}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                  />
+                  <input type="range" name="security.sessionTimeout" min="5" max="120" step="5"
+                    value={settings.security.sessionTimeout} onChange={handleInputChange} className="w-full h-2 bg-gray-200 
+                    rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
                   <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-2">
                     <span>5 min</span>
                     <span className="font-medium">{settings.security.sessionTimeout} min</span>
@@ -333,14 +313,10 @@ const AdminSettings = () => {
                   <label className="block text-sm font-medium mb-2">
                     IP Whitelist (Optional)
                   </label>
-                  <textarea
-                    name="security.ipWhitelist"
-                    value={settings.security.ipWhitelist}
-                    onChange={handleInputChange}
-                    placeholder="Enter IP addresses separated by commas"
-                    rows="3"
-                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                  />
+                  <textarea name="security.ipWhitelist" value={settings.security.ipWhitelist} onChange={handleInputChange}
+                    placeholder="Enter IP addresses separated by commas" rows="3" className="w-full p-3 border border-gray-300 
+                    dark:border-gray-600 rounded-lg dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent 
+                    resize-none"/>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Only these IP addresses will be allowed to access the admin panel
                   </p>
@@ -431,11 +407,9 @@ const AdminSettings = () => {
 
           {/* Save Button */}
           <div className="pt-6 border-t dark:border-gray-700">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center justify-center gap-2 w-full md:w-auto px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button onClick={handleSave} disabled={isSaving} className="flex items-center justify-center gap-2 w-full md:w-auto 
+            px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition font-medium disabled:opacity-50 
+            disabled:cursor-not-allowed">
               <FaSave />
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>

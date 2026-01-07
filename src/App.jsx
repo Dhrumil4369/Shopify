@@ -44,12 +44,13 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 // Layout for normal pages (with Navbar & Footer)
+// Inside your App.jsx, replace MainLayout with this:
 const MainLayout = ({ children }) => (
-  <>
+  <div className="flex flex-col min-h-screen">
     <Navbar />
-    {children}
+    <main className="flex-grow">{children}</main>
     <Footer />
-  </>
+  </div>
 );
 
 // Layout for Admin Panel (NO Navbar & NO Footer)
