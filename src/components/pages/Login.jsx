@@ -11,49 +11,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   setError("");
-
-  //   try {
-  //     // Simulate API call - replace with your actual backend
-  //     const res = await fetch(
-  //       "https://shopify-backend-indol.vercel.app/api/users/login",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           email,
-  //           password,
-  //         }),
-  //       }
-  //     );
-
-  //     const data = await res.json();
-
-  //     if (res.ok) {
-  //       // Simulate successful login
-  //       const userData = {
-  //         name: email.split('@')[0],
-  //         email: email,
-  //         role: 'customer'
-  //       };
-        
-  //       login(data.token || "dummy-token", userData);
-  //       navigate("/");
-  //     } else {
-  //       setError(data.message || "Login failed. Please check your credentials.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Login error:", error);
-  //     setError("Server error. Please try again later.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const handleLogin = async (e) => {
   e.preventDefault();
   setIsLoading(true);
