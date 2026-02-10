@@ -3,10 +3,11 @@ import Logo from "../../assets/logo.png";
 import { IoMdSearch, IoMdClose, IoMdMenu } from "react-icons/io";
 import { FaCartShopping } from "react-icons/fa6";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import DarkMode from "./DarkMode";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+import SearchBar from "../SearchBar/SearchBar"; 
 
 const Menu = [
   { id: 1, name: "Home", link: "/" },
@@ -20,6 +21,7 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); 
 
   const [prevScrollPos, setPrevScrollPos] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -34,44 +36,75 @@ const Navbar = () => {
     setIsProfileDropdownOpen(false);
   };
 
-  // ... (scroll and click-outside useEffects remain unchanged)
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    navigate("/", { replace: true });
+
+    if (location.pathname === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      setVisible(prevScrollPos > currentScrollPos || currentScrollPos < 10);
+      setPrevScrollPos(currentScrollPos);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [prevScrollPos]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target)
+      ) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className={`shadow-md bg-white dark:bg-gray-900 dark:text-white duration-200 fixed top-0 left-0 right-0 z-40 
-      transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
-      
-      {/* upper Navbar */}
+    <div
+      className={`shadow-md bg-white dark:bg-gray-900 dark:text-white duration-200 fixed top-0 left-0 right-0 z-40 
+      transition-transform duration-300 ${visible ? "translate-y-0" : "-translate-y-full"}`}>
+
       <div className="bg-primary/40 py-3 sm:py-2">
         <div className="container flex justify-between items-center">
           <div className="flex items-center">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="mobile-menu-button sm:hidden mr-3 text-2xl">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="mobile-menu-button sm:hidden mr-3 text-2xl">
               {isMobileMenuOpen ? <IoMdClose /> : <IoMdMenu />}
             </button>
-            
-            <Link to="/" className="font-bold text-2xl sm:text-3xl flex gap-2 items-center">
+
+            <Link to="/" onClick={handleLogoClick} className="font-bold text-2xl sm:text-3xl flex gap-2 items-center">
               <img src={Logo} alt="Logo" className="w-10 h-10" />
               Shopify
             </Link>
           </div>
 
           <div className="flex justify-between items-center gap-4">
-            {/* Search bar (unchanged) */}
-            <div className="relative group hidden sm:block">
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-[200px] sm:w-[200px] group-hover:w-[300px] 
-                transition-all duration-300 rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:border-1 
-                focus:border-primary dark:border-gray-500 dark:bg-gray-800 dark:text-white"
-              />
-              <IoMdSearch className="text-gray-500 group-hover:text-primary absolute top-1/2 -translate-y-1/2 right-4" />
+
+            <div className="hidden sm:block">
+              <SearchBar />
             </div>
 
-            {/* ==== NEW: Admin Button (only for admin) ==== */}
-            {isAuthenticated && user?.role === "admin" && (
+             {isAuthenticated && user?.role === "admin" && (
               <Link
                 to="/admin"
-                className="hidden sm:flex bg-black  text-white py-2 px-6 rounded-full 
+                className="hidden sm:flex bg-black text-white py-2 px-6 rounded-full 
                 hover:scale-105 duration-300 font-semibold items-center gap-2"
               >
                 Admin
@@ -95,13 +128,12 @@ const Navbar = () => {
                       <p className="font-semibold truncate">{user?.name}</p>
                       <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                     </div>
-                    
-                    {/* Optional: Admin link inside dropdown too */}
+
                     {user?.role === "admin" && (
                       <Link
                         to="/admin"
                         onClick={() => setIsProfileDropdownOpen(false)}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="block w-full text-left px-4 py 2 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         Admin Dashboard
                       </Link>
@@ -147,7 +179,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* lower Navbar - Desktop menu (unchanged) */}
+      {/* lower Navbar*/}
       <div className="hidden sm:block bg-white dark:bg-gray-900 py-3 border-t dark:border-gray-700">
         <div className="container">
           <ul className="flex items-center justify-center gap-6">
@@ -162,24 +194,15 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu - Add Admin link for admin users */}
+      {/* Mobile Menu */}
       <div
         ref={mobileMenuRef}
         className={`sm:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-700 overflow-hidden 
-        transition-all duration-300 ${isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+        transition-all duration-300 ${isMobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="container py-4">
-          {/* Mobile search */}
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full p-3 rounded-full border border-gray-300 px-4 focus:outline-none focus:border-1 focus:border-primary dark:border-gray-500 dark:bg-gray-800 dark:text-white"
-              />
-              <IoMdSearch className="text-gray-500 absolute top-1/2 -translate-y-1/2 right-4" />
-            </div>
-          </div>
+          {/* Mobile search - Using SearchBar component */}
+          <SearchBar isMobile={true} />
 
           {/* Mobile menu items */}
           <ul className="space-y-3">
@@ -217,7 +240,7 @@ const Navbar = () => {
                   <p className="font-semibold truncate">{user?.name}</p>
                   <p className="text-sm text-gray-500 truncate">{user?.email}</p>
                 </div>
-                
+
                 <button
                   onClick={() => {
                     handleLogout();
@@ -236,7 +259,7 @@ const Navbar = () => {
                 className="block w-full text-center bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-full hover:scale-105 duration-200"
               >
                 Login
-              </Link>
+              </Link>                 
             )}
           </div>
         </div>

@@ -1,17 +1,110 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import ProductGrid from "../common/ProductGrid";
 
-const mensProducts = [
-  { id: 201, img: "https://picsum.photos/seed/men1/400/500", title: "Formal Shirt", price: 1599, oldPrice: 2499, rating: 4.7 },
-  { id: 202, img: "https://picsum.photos/seed/men2/400/500", title: "Slim Fit Jeans", price: 1999, oldPrice: 2999, rating: 4.6 },
-  { id: 203, img: "https://picsum.photos/seed/men3/400/500", title: "Leather Jacket", price: 3999, oldPrice: 5999, rating: 4.9 },
-  { id: 204, img: "https://picsum.photos/seed/men4/400/500", title: "Casual Hoodie", price: 1899, oldPrice: 2799, rating: 4.5 },
-  { id: 205, img: "https://picsum.photos/seed/men5/400/500", title: "Running Shoes", price: 2999, oldPrice: 4499, rating: 4.8 },
-  { id: 206, img: "https://picsum.photos/seed/men6/400/500", title: "Classic Watch", price: 4999, oldPrice: 7999, rating: 4.9 },
-];
+const Menswear = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const MensWear = () => {
-  return <ProductGrid title="Men's Fashion" products={mensProducts} />;
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(
+          "https://dhrumil-backend.vercel.app/api/products"
+        );
+
+        if (!isMounted) return;
+
+        const data = res.data;
+
+        if (data.success && Array.isArray(data.products)) {
+          const mensProducts = data.products.filter(
+            (item) =>
+              item.category?.toLowerCase().includes("mens") ||
+              item.category?.toLowerCase().includes("men") ||
+              item.category?.toLowerCase().includes("mens wear"));
+
+          const mapped = mensProducts.map((item) => ({
+            id: item._id,
+            title: item.name || "Unnamed Product",
+            price: Number(item.discountPrice) || 0,
+            oldPrice: Number(item.MRP) || null,
+            rating: Number(item.rating) || 4.5,
+            img:
+              item.images?.[0] ||
+              "https://via.placeholder.com/400x500?text=No+Image",
+            fullData: item,
+          }));
+
+          setProducts(mapped);
+        } else {
+          setError("Invalid response format from server");
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setError("Failed to load products. Please try again later.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Loading Men's Collection...
+          </p>
+          
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <p className="text-xl font-semibold text-red-600 dark:text-red-500 px-4 text-center">
+          {error}
+        </p>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <p className="text-lg text-gray-500 dark:text-gray-400">
+          No men's wear products available at the moment
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="bg-gray-50 dark:bg-gray-900 py-12 md:py-16 lg:py-20">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <ProductGrid 
+          title="Men's Collection" 
+          products={products} 
+        />
+      </div>
+    </section>
+  );
 };
 
-export default MensWear;
+export default Menswear;

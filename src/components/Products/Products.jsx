@@ -1,5 +1,3 @@
-
-
 import React from "react";
 import { FaStar } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";

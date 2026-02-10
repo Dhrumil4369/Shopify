@@ -1,141 +1,105 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useCart must be used within CartProvider");
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
-  const [authToken, setAuthToken] = useState(localStorage.getItem("token"));
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCart = localStorage.getItem("cartItems");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
-  // Listen for storage changes (like logout/login)
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+
   useEffect(() => {
-    const handleStorageChange = () => {
-      const newToken = localStorage.getItem("token");
-      if (newToken !== authToken) {
-        setAuthToken(newToken);
-      }
-    };
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [authToken]);
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // Get current user from localStorage (if any)
-  const getCurrentUser = () => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch {
-      return null;
-    }
-  };
+  const addToCart = (product, size = null, color = null) => {
+    const productId = product.id || product._id;
 
-  // Generate unique cart key based on user or guest
-  const getCartKey = () => {
-    const user = getCurrentUser();
-    const token = localStorage.getItem("token");
-    
-    if (token && user) {
-      return `cart_${user.email || user.id}`; // User-specific cart
-    }
-    return "cart_guest"; // Guest cart
-  };
+    setCartItems((prevItems) => {
+      const existingItemIndex = prevItems.findIndex(
+        (item) =>
+          (item.id || item._id) === productId &&
+          item.size === size &&
+          item.color === color
+      );
 
-  // 🔹 Load cart from localStorage based on user - THIS IS THE KEY FIX
-  useEffect(() => {
-    const cartKey = getCartKey();
-    const savedCart = localStorage.getItem(cartKey);
-    
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        setCartItems(parsedCart);
-      } catch (error) {
-        console.error("Error parsing cart from localStorage:", error);
-        localStorage.removeItem(cartKey);
-      }
-    } else {
-      setCartItems([]);
-    }
-  }, [authToken]); // Reload cart when auth token changes
-
-  // 🔹 Update cartCount and save to localStorage
-  useEffect(() => {
-    const totalQty = cartItems.reduce(
-      (sum, item) => sum + (item.quantity || 0),
-      0
-    );
-    setCartCount(totalQty);
-    
-    // Save to localStorage with appropriate key
-    const cartKey = getCartKey();
-    localStorage.setItem(cartKey, JSON.stringify(cartItems));
-  }, [cartItems, authToken]); // Also depend on authToken
-
-  // 🔹 Add to cart
-  const addToCart = (product) => {
-    setCartItems((prev) => {
-      const exists = prev.find((i) => i.id === product.id);
-      if (exists) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: (item.quantity || 0) + 1 }
-            : item
-        );
+      if (existingItemIndex > -1) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += 1;
+        return updatedItems;
       } else {
-        return [...prev, { ...product, quantity: 1 }];
+        return [
+          ...prevItems,
+          {
+            ...product,
+            id: productId,
+            quantity: 1,
+            size,
+            color,
+          },
+        ];
       }
     });
+
+    // Show notification
+    setNotificationCount(1);
+    setShowNotification(true);
+
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 3000);
   };
 
-  // 🔹 Remove item
-  const removeFromCart = (id) => {
-    setCartItems((prev) =>
-      prev.filter((item) => item.id !== id)
-    );
-  };
-
-  // 🔹 Update quantity
-  const updateQuantity = (id, qty) => {
-    if (qty < 1) {
-      removeFromCart(id);
-      return;
-    }
-
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: qty } : item
+  const removeFromCart = (productId, size = null, color = null) => {
+    setCartItems((prevItems) =>
+      prevItems.filter(
+        (item) =>
+          !(
+            (item.id || item._id) === productId &&
+            item.size === size &&
+            item.color === color
+          )
       )
     );
   };
 
-  // 🔥 CLEAR CART
+  const updateQuantity = (productId, newQuantity, size = null, color = null) => {
+    if (newQuantity < 1) {
+      removeFromCart(productId, size, color);
+      return;
+    }
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        (item.id || item._id) === productId &&
+        item.size === size &&
+        item.color === color
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setCartItems([]);
-    const cartKey = getCartKey();
-    localStorage.removeItem(cartKey);
   };
 
-  // 🔹 Clear cart for specific user (called on logout)
-  const clearUserCart = (userEmailOrId) => {
-    if (userEmailOrId) {
-      localStorage.removeItem(`cart_${userEmailOrId}`);
-    }
-    setCartItems([]); // Clear current cart state
-  };
-
-  // 🔹 Total price
   const getTotalPrice = () => {
     return cartItems.reduce(
-      (total, item) => total + (item.price || 0) * (item.quantity || 0),
+      (total, item) => total + Number(item.price || 0) * item.quantity,
       0
     );
   };
@@ -149,8 +113,9 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
-        clearUserCart,
         getTotalPrice,
+        showNotification,
+        notificationCount,
       }}
     >
       {children}

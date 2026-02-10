@@ -3,22 +3,27 @@ import { useCart } from "../../context/CartContext";
 import { FaLock, FaCreditCard, FaShippingFast, FaCheckCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "https://dhrumil-backend.vercel.app/api/orders";
+
 const Checkout = () => {
   const { cartItems, getTotalPrice, clearCart } = useCart();
   const navigate = useNavigate();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState("");
+  const [error, setError] = useState("");
 
+  // Updated form structure to match backend validation
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
     address: "",
     city: "",
     state: "",
-    zipCode: "",
-    paymentMethod: "credit-card",
+    pincode: "",
+    paymentMethod: "credit",
   });
 
   const handleInputChange = (e) => {
@@ -26,26 +31,170 @@ const Checkout = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  // Fetch orders (GET)
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(API_BASE_URL, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch orders");
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setError("Failed to fetch order history");
+    }
+  };
+
+  // Create order (POST) - Updated to match backend schema
+  const createOrder = async (orderData) => {       
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create order");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
+  };
+
+  // Update order (PUT)
+  const updateOrder = async (orderId, updatedData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/update/${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) throw new Error("Failed to update order");
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating order:", error);
+      throw error;
+    }
+  };
+
+  // Delete order (DELETE)
+  const deleteOrder = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/delete/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to delete order");
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsProcessing(true);
+    setError("");
 
-    // Simulate payment processing
-    setTimeout(() => {
+    const shippingCharge = 99;
+    const subtotal = getTotalPrice();
+    const tax = subtotal * 0.18;
+    const totalAmount = subtotal + shippingCharge + tax;
+
+    // Prepare order data matching backend schema
+    const orderData = {
+      shippingInfo: {
+        fullName: formData.fullName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+      },
+      orderItems: cartItems.map(item => ({
+        product: item._id || item.id,
+        name: item.title || item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.img || item.image,
+      })),
+      paymentMethod: formData.paymentMethod,
+      itemsPrice: subtotal,
+      taxPrice: tax,
+      shippingPrice: shippingCharge,
+      totalPrice: totalAmount,
+    };
+
+    console.log("Sending order data:", orderData); 
+
+    try {
+      // Create order via API
+      const result = await createOrder(orderData);
+      
       setIsProcessing(false);
       setIsSuccess(true);
+      setOrderId(result.orderId || result._id || Date.now().toString().slice(-8));
+      
       clearCart();
 
-      // Redirect to home after 3 seconds
       setTimeout(() => {
         navigate("/");
-      }, 3000);
-    }, 2000);
+      }, 5000);
+
+    } catch (error) {
+      setIsProcessing(false);
+      setError(error.message || "Failed to place order. Please try again.");
+    }
   };
 
   const shippingCharge = 99;
-  const tax = getTotalPrice() * 0.18;
-  const totalAmount = getTotalPrice() + shippingCharge + tax;
+  const subtotal = getTotalPrice();
+  const tax = subtotal * 0.18;
+  const totalAmount = subtotal + shippingCharge + tax;
+
+  // Payment method configuration matching backend enum
+  const paymentMethods = [
+    {
+      value: "credit",
+      label: "Credit/Debit Card",
+      description: "Pay securely with your card"
+    },
+    {
+      value: "upi",
+      label: "UPI Payment",
+      description: "Instant payment via UPI apps"
+    },
+    {
+      value: "cash",
+      label: "Cash on Delivery",
+      description: "Pay when you receive the order"
+    }
+  ];
 
   // Empty cart state
   if (cartItems.length === 0 && !isSuccess) {
@@ -59,10 +208,8 @@ const Checkout = () => {
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             Looks like you haven't added anything yet. Let's fix that!
           </p>
-          <button
-            onClick={() => navigate("/")}
-            className="bg-gradient-to-r from-primary to-secondary text-white py-4 px-8 rounded-full hover:scale-105 duration-300 font-semibold text-lg"
-          >
+          <button onClick={() => navigate("/")} className="bg-gradient-to-r from-primary to-secondary text-white py-4 px-8 
+          rounded-full hover:scale-105 duration-300 font-semibold text-lg">
             Continue Shopping
           </button>
         </div>
@@ -76,7 +223,13 @@ const Checkout = () => {
         Checkout
       </h1>
 
-      {/* Success State */}
+      {/* Error Message */}
+      {error && (
+        <div className="max-w-2xl mx-auto mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+          <p className="text-red-600 dark:text-red-400 text-center font-medium">{error}</p>
+        </div>
+      )}
+
       {isSuccess ? (
         <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 text-center">
           <FaCheckCircle className="text-8xl text-green-500 mx-auto mb-6" />
@@ -89,25 +242,34 @@ const Checkout = () => {
 
           <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-6 mb-8">
             <p className="text-xl font-semibold text-gray-800 dark:text-white">
-              Order ID: <span className="text-primary">SHOP-{Date.now().toString().slice(-8)}</span>
+              Order ID: <span className="text-primary">SHOP-{orderId}</span>
             </p>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Estimated Delivery: 3-5 business days
             </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-4">
+              You can view your order history in your account dashboard.
+            </p>
           </div>
 
-          <button
-            onClick={() => navigate("/")}
-            className="bg-gradient-to-r from-primary to-secondary text-white py-4 px-10 rounded-full hover:scale-105 duration-300 font-bold text-xl"
-          >
-            Continue Shopping
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => navigate("/orders")} 
+              className="bg-gray-800 dark:bg-gray-700 text-white py-3 px-8 rounded-full hover:scale-105 duration-300 font-bold"
+            >
+              View Orders
+            </button>
+            <button 
+              onClick={() => navigate("/")} 
+              className="bg-gradient-to-r from-primary to-secondary text-white py-3 px-10 rounded-full hover:scale-105 duration-300 font-bold"
+            >
+              Continue Shopping
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Left: Order Summary */}
           <div>
-            {/* Order Items */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <FaShippingFast className="text-primary" />
@@ -116,20 +278,10 @@ const Checkout = () => {
 
               <div className="space-y-6 max-h-96 overflow-y-auto">
                 {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-5 pb-6 border-b dark:border-gray-700 last:border-0"
-                  >
-                    {/* Product Image - Fixed Here */}
-                    <img
-                      src={
-                        item.img || 
-                        item.image || 
-                        "https://via.placeholder.com/100?text=No+Image"
-                      }
-                      alt={item.title || item.name}
-                      className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
-                    />
+                  <div key={item._id || item.id} className="flex items-center gap-5 pb-6 border-b dark:border-gray-700 last:border-0">
+                    <img src={item.img || item.image || "https://via.placeholder.com/100?text=No+Image"} 
+                      alt={item.title || item.name} className="w-24 h-24 object-cover rounded-xl border border-gray-200 
+                      dark:border-gray-700"/>
 
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
@@ -151,7 +303,7 @@ const Checkout = () => {
               <div className="mt-8 space-y-4 border-t dark:border-gray-700 pt-6">
                 <div className="flex justify-between text-lg">
                   <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                  <span className="font-semibold">₹{getTotalPrice().toFixed(2)}</span>
+                  <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg">
                   <span className="text-gray-600 dark:text-gray-400">Shipping</span>
@@ -176,28 +328,23 @@ const Checkout = () => {
               </h2>
 
               <div className="space-y-4">
-                {["credit-card", "upi", "cod"].map((method) => (
-                  <label
-                    key={method}
-                    className="flex items-center p-4 border dark:border-gray-700 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={method}
-                      checked={formData.paymentMethod === method}
-                      onChange={handleInputChange}
+                {paymentMethods.map((method) => (
+                  <label key={method.value} className="flex items-center p-4 border dark:border-gray-700 rounded-xl cursor-pointer 
+                  hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value={method.value} 
+                      checked={formData.paymentMethod === method.value}
+                      onChange={handleInputChange} 
                       className="mr-4 text-primary"
                     />
                     <div>
-                      <p className="font-semibold capitalize">
-                        {method === "credit-card" ? "Credit/Debit Card" : 
-                         method === "upi" ? "UPI Payment" : "Cash on Delivery"}
+                      <p className="font-semibold">
+                        {method.label}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {method === "credit-card" && "Pay securely with your card"}
-                        {method === "upi" && "Instant payment via UPI apps"}
-                        {method === "cod" && "Pay when you receive the order"}
+                        {method.description}
                       </p>
                     </div>
                   </label>
@@ -244,15 +391,15 @@ const Checkout = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone Number *</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="+91 98765 43210"
-                    className="w-full p-4 border dark:border-gray-700 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:outline-none"
-                  />
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="+91 98765 43210"
+                      className="w-full p-4 border dark:border-gray-700 rounded-xl dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:outline-none"
+                    />
                 </div>
 
                 <div>
@@ -294,11 +441,11 @@ const Checkout = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">ZIP Code *</label>
+                    <label className="block text-sm font-medium mb-2">PIN Code *</label>
                     <input
                       type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
+                      name="pincode"
+                      value={formData.pincode}
                       onChange={handleInputChange}
                       required
                       placeholder="400001"

@@ -1,41 +1,91 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import ProductGrid from "../common/ProductGrid";
-import { useCart } from "../../context/CartContext";
-
-
-const kidsProducts = [
-  { id: 101, img: "https://picsum.photos/400/500?random=101", title: "Cute Panda Kids T-Shirt", price: 799, oldPrice: 1299, rating: 4.8 },
-  { id: 102, img: "https://picsum.photos/400/500?random=102", title: "Kids Denim Overall", price: 1299, oldPrice: 1899, rating: 4.7 },
-  { id: 103, img: "https://picsum.photos/400/500?random=103", title: "Cozy Winter Jacket", price: 1999, oldPrice: 2999, rating: 4.9 },
-  { id: 104, img: "https://picsum.photos/400/500?random=104", title: "Colorful Kids Hoodie", price: 1499, oldPrice: 2199, rating: 4.6 },
-  { id: 105, img: "https://picsum.photos/400/500?random=105", title: "Summer Play Set", price: 899, oldPrice: 1499, rating: 4.8 },
-  { id: 106, img: "https://picsum.photos/400/500?random=106", title: "Kids Sporty Sneakers", price: 1799, oldPrice: 2499, rating: 4.9 },
-];
 
 const KidsWear = () => {
-  return <ProductGrid title="Kids Wear Collection" products={kidsProducts} />;
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center mb-10">Kids Wear</h1>
+  useEffect(() => {
+    let isMounted = true;
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {kidsProducts.map((item) => (
-          <div key={item.id} className="border rounded-lg p-4 shadow hover:scale-105 transition duration-300 
-          dark:bg-gray-800 dark:border-gray-700">
-            <img src={item.image} alt={item.name} className="w-full h-[350px] object-cover rounded-md mb-3"/>
+    const fetchKidsProducts = async () => {
+      try {
+        const res = await axios.get("https://dhrumil-backend.vercel.app/api/products");
 
-            <h2 className="font-semibold text-lg dark:text-white">{item.name}</h2>
-            <p className="text-green-600 font-bold dark:text-green-400">₹{item.price}</p>
+        if (!isMounted) return;
 
-            <button onClick={() => handleAddToCart(item)} className="mt-3 w-full bg-gradient-to-r from-primary to-secondary 
-            text-white py-2 rounded-md hover:scale-105 duration-300">
-              Add to Cart
-            </button>
-          </div>
-        ))}
+        if (res.data?.success && Array.isArray(res.data.products)) {
+          const kidsItems = res.data.products.filter((item) =>
+            item.category?.toLowerCase().includes("kids") ||
+            item.category?.toLowerCase().includes("kid") ||
+            item.category?.toLowerCase().includes("children") ||
+            item.category?.toLowerCase().includes("baby") ||
+            item.name?.toLowerCase().includes("kids")
+          );
+
+          const formatted = kidsItems.map((item) => ({
+            id: item._id,
+            title: item.name || "Product",
+            price: Number(item.discountPrice) || item.MRP || 0,
+            oldPrice: Number(item.MRP) || null,
+            rating: Number(item.rating) || 4.5,
+            img:
+              item.images?.[0] ||
+              "https://via.placeholder.com/400x500?text=No+Image",
+            fullData: item,
+          }));
+
+          setProducts(formatted);
+        } else {
+          setError("Invalid data format");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load kids collection");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchKidsProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-lg text-gray-500">Loading kids collection...</p>
       </div>
-    </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center text-red-600 text-xl">
+        {error}
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-lg text-gray-600">No kids wear available right now</p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="bg-gray-50 dark:bg-gray-900 py-12 md:py-16">
+      <div className="container mx-auto px-4">
+        <ProductGrid title="Kids Wear " products={products} />
+      </div>
+    </section>
   );
 };
 
