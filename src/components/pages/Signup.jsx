@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Use auth context
+  const { login } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
