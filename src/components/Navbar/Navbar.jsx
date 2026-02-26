@@ -7,7 +7,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import DarkMode from "./DarkMode";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
-import SearchBar from "../../components/SearchBar/SearchBar";
+import SearchBar from "../SearchBar/SearchBar";
 
 const Menu = [
   { id: 1, name: "Home", link: "/" },
