@@ -177,7 +177,7 @@ const Checkout = () => {
   const tax = subtotal * 0.18;
   const totalAmount = subtotal + shippingCharge + tax;
 
-  // Payment method configuration matching backend enum
+  // Payment method configuration matching backend
   const paymentMethods = [
     {
       value: "credit",
